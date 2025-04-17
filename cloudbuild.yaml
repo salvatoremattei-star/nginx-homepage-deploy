@@ -1,53 +1,6 @@
 steps:
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   entrypoint: bash
-  args:
-  - -c
-  - |
-    # Genera nuova startup script con HTML corrente
-    HTML=$(cat html/index.html | sed 's/"/\\"/g' | awk '{print "        value: \\""$0"\\""}')
-    cat <<EOF > new-template.yaml
-resources:
-- name: homepage-template-\$(date +%s)
-  type: compute.v1.instanceTemplate
-  properties:
-    properties:
-      machineType: e2-standard-2
-      tags:
-        items: [allow-health-check]
-      metadata:
-        items:
-        - key: startup-script
-          $HTML
-      networkInterfaces:
-      - subnetwork: projects/YOUR_PROJECT/regions/us-central1/subnetworks/custom-subnet
-        accessConfigs:
-        - name: External NAT
-          type: ONE_TO_ONE_NAT
-      disks:
-      - deviceName: boot
-        type: PERSISTENT
-        boot: true
-        autoDelete: true
-        initializeParams:
-          sourceImage: projects/debian-cloud/global/images/family/debian-12
-      serviceAccounts:
-      - email: default
-        scopes: [https://www.googleapis.com/auth/cloud-platform]
-EOF
-
-    # Crea il nuovo instance template
-    gcloud deployment-manager deployments create homepage-template-$(date +%s) --config=new-template.yaml
-
-    # Ottieni il selfLink del nuovo template
-    TEMPLATE=$(gcloud compute instance-templates list --filter="name~homepage-template" --sort-by=~creationTimestamp --format="value(selfLink)" | head -n 1)
-
-    # Aggiorna il MIG con rolling replace
-    gcloud compute instance-groups managed set-instance-template nginx-mig \
-      --template=$TEMPLATE \
-      --zone=us-central1-a
-
-    gcloud compute instance-groups managed rolling-action replace nginx-mig \
-      --zone=us-central1-a
+  args: ["./deploy.sh"]
 timeout: 900s
 
