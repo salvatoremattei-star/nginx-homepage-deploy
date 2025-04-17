@@ -8,18 +8,16 @@ ZONE=us-central1-a
 SUBNET=custom-subnet
 
 # Carica il file HTML dal repository e lo inserisce nella startup-script
-STARTUP_SCRIPT=$(cat <<EOT
+STARTUP_SCRIPT="
         value: |
           #!/bin/bash
           apt-get update
           apt-get install -y nginx
-          cat <<EOF > /var/www/html/index.html
-$(cat html/index.html)
-EOF
+          echo $(cat html/index.html)  > /var/www/html/index.html
           systemctl enable nginx
-          systemctl restart nginx
-EOT
-)
+          systemctl restart nginx"
+
+
 
 # Crea un nome univoco per l'instance template
 TEMPLATE_NAME=homepage-template-$(date +%s)
