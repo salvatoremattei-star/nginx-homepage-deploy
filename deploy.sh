@@ -1,28 +1,12 @@
 #!/bin/bash
 set -e
 
-# Configurazione progetto
 PROJECT_ID=playground-s-11-0a723cfb
 REGION=us-central1
 ZONE=us-central1-a
 SUBNET=custom-subnet
-
-# Carica il file HTML dal repository e lo inserisce nella startup-script
-STARTUP_SCRIPT="
-        value: |
-          #!/bin/bash
-          apt-get update
-          apt-get install -y nginx
-          echo $(cat html/index.html)  > /var/www/html/index.html
-          systemctl enable nginx
-          systemctl restart nginx"
-
-
-
-# Crea un nome univoco per l'instance template
 TEMPLATE_NAME=homepage-template-$(date +%s)
 
-# Crea il file YAML del template
 cat <<EOF > new-template.yaml
 resources:
 - name: $TEMPLATE_NAME
@@ -35,7 +19,13 @@ resources:
       metadata:
         items:
         - key: startup-script
-$STARTUP_SCRIPT
+          value: |
+            #!/bin/bash
+            apt-get update
+            apt-get install -y nginx
+            echo 'Ciaonesss' > /var/www/html/index.html
+            systemctl enable nginx
+            systemctl restart nginx
       networkInterfaces:
       - subnetwork: projects/$PROJECT_ID/regions/$REGION/subnetworks/$SUBNET
         accessConfigs:
@@ -53,20 +43,13 @@ $STARTUP_SCRIPT
         scopes: [https://www.googleapis.com/auth/cloud-platform]
 EOF
 
-# Crea il nuovo template
 gcloud deployment-manager deployments create $TEMPLATE_NAME --config=new-template.yaml
+TEMPLATE=$(gcloud compute instance-templates list --filter="name=$TEMPLATE_NAME" --format="value(selfLink)" | head -n 1)
 
-# Ottiene il selfLink
-TEMPLATE=$(gcloud compute instance-templates list \
-  --filter="name=$TEMPLATE_NAME" \
-  --format="value(selfLink)" | head -n 1)
-
-# Aggiorna il MIG
 gcloud compute instance-groups managed set-instance-template nginx-mig \
   --template=$TEMPLATE \
   --zone=$ZONE
 
-# Rolling update
 gcloud compute instance-groups managed rolling-action replace nginx-mig \
   --zone=$ZONE
 
