@@ -8,7 +8,7 @@ ZONE=us-central1-a
 SUBNET=custom-subnet
 
 # Legge l'HTML e lo formatta per YAML
-HTML=$(cat html/index.html | sed 's/"/\\\"/g' | awk '{print "        value: \\""$0"\\""}')
+HTML=$(cat html/index.html  | awk '{print "        value: \""$0"\""}')
 
 TEMPLATE_NAME=homepage-template-$(date +%s)
 
