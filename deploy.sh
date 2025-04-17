@@ -13,7 +13,7 @@ STARTUP_SCRIPT=$(cat <<'EOT'
           #!/bin/bash
           apt-get update
           apt-get install -y nginx
-          cat <<EOF > /var/www/html/index.html
+          cat <<EOF_HTML > /var/www/html/index.html
           <!DOCTYPE html>
           <html>
           <head><title>Homepage</title></head>
@@ -21,7 +21,7 @@ STARTUP_SCRIPT=$(cat <<'EOT'
             <h1>Benvenuto sulla homepage aggiornata!</h1>
           </body>
           </html>
-EOF
+EOF_HTML
           systemctl enable nginx
           systemctl restart nginx
 EOT
